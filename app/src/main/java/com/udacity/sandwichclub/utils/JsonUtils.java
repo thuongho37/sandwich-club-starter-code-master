@@ -1,5 +1,7 @@
 package com.udacity.sandwichclub.utils;
 
+import android.util.Log;
+
 import com.udacity.sandwichclub.model.Sandwich;
 
 import org.json.JSONArray;
@@ -7,25 +9,62 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JsonUtils {
 
-    public static Sandwich parseSandwichJson(String json) throws JSONException {
-        JSONObject sandwich = new JSONObject(json);
-        JSONObject name = sandwich.getJSONObject("name");
-        List<String> aka = (List) name.getJSONObject("alsoKnownAs");
-        List<String> ingredients = (List) sandwich.getJSONObject("ingredients");
-        Sandwich different_sandwich = null;
-
-        different_sandwich.setMainName(name.getString("mainName"));
-        different_sandwich.setAlsoKnownAs(aka);
-        different_sandwich.setPlaceOfOrigin(sandwich.getString("placeOfOrigin"));
-        different_sandwich.setDescription(sandwich.getString("discription"));
-        different_sandwich.setImage(sandwich.getString("image"));
-        different_sandwich.setIngredients(ingredients);
+    private static final String LOG_TAG = JsonUtils.class.getSimpleName();
+    private static final String SAND_NAME = "name";
+    private static final String SAND_MAIN_NAME= "mainName";
+    private static final String SAND_ALSO= "alsoKnownAs";
+    private static final String SAND_PLACE_ORIGIN= "placeOfOrigin";
+    private static final String SAND_DESCRIPTION= "description";
+    private static final String SAND_IMAGE= "image";
+    private static final String SAND_INGREDIENTS= "ingredients";
 
 
-        return different_sandwich;
+
+
+
+    public static Sandwich parseSandwichJson(String json) {
+
+        JSONObject jsonObject;
+        String mainName = null;
+        String placeOfOrigin = null;
+        String description = null;
+        String image = null;
+        List<String> ingredients = new ArrayList<>();
+        List<String> alsoKnownAs = new ArrayList<>();
+        try {
+            jsonObject = new JSONObject(json);
+            JSONObject jsonObjectName = jsonObject.getJSONObject(SAND_NAME);
+            mainName = jsonObjectName.optString(SAND_MAIN_NAME);
+            placeOfOrigin = jsonObject.optString(SAND_PLACE_ORIGIN);
+            description = jsonObject.optString(SAND_DESCRIPTION);
+            image = jsonObject.optString(SAND_IMAGE);
+
+            alsoKnownAs = jsonArrayList(jsonObjectName.getJSONArray(SAND_ALSO));
+            ingredients = jsonArrayList(jsonObject.getJSONArray(SAND_INGREDIENTS));
+
+
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Problems with parse", e);
+        }
+        return new Sandwich(mainName, alsoKnownAs, placeOfOrigin, description, image, ingredients);
+    }
+
+    private static List<String> jsonArrayList(JSONArray jsonArray){
+        List<String> list = new ArrayList<>(0);
+        if (jsonArray!=null){
+            for (int i=0; i<jsonArray.length();i++){
+                try {
+                    list.add(jsonArray.getString(i));
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, "Problems with array list", e);
+                }
+            }
+        }
+        return list;
     }
 }
